@@ -12,11 +12,10 @@ import ArticleAround from './components/ArticleAround'
 import ShareBar from '@/components/ShareBar'
 import { AdSlot } from '@/components/GoogleAdsense'
 import Link from 'next/link'
-import CommonHead from '@/components/CommonHead'
 import { TopBar } from './components/TopBar'
 import { Header } from './components/Header'
 import { NavBar } from './components/NavBar'
-import BLOG from '@/blog.config'
+import { siteConfig } from '@/lib/config'
 import { SideBar } from './components/SideBar'
 import JumpToTopButton from './components/JumpToTopButton'
 import { Footer } from './components/Footer'
@@ -25,6 +24,7 @@ import SearchInput from './components/SearchInput'
 import { Transition } from '@headlessui/react'
 import { Style } from './style'
 import replaceSearchResult from '@/components/Mark'
+import CommonHead from '@/components/CommonHead'
 
 /**
  * 基础布局
@@ -33,18 +33,19 @@ import replaceSearchResult from '@/components/Mark'
  * @returns
  */
 const LayoutBase = props => {
-  const { children, meta, slotTop } = props
+  const { children, slotTop, meta } = props
   const { onLoading } = useGlobal()
 
-  if (isBrowser()) {
+  if (isBrowser) {
     loadExternalResource('/css/theme-simple.css', 'css')
   }
   return (
         <div id='theme-simple' className='min-h-screen flex flex-col dark:text-gray-300  bg-white dark:bg-black'>
-            <CommonHead meta={meta} />
+            {/* SEO相关 */}
+            <CommonHead meta={meta}/>
             <Style/>
 
-            {CONFIG.TOP_BAR && <TopBar {...props} />}
+            {siteConfig('SIMPLE_TOP_BAR', null, CONFIG) && <TopBar {...props} />}
 
             {/* 顶部LOGO */}
             <Header {...props} />
@@ -53,14 +54,14 @@ const LayoutBase = props => {
             <NavBar {...props} />
 
             {/* 主体 */}
-            <div id='container-wrapper' className={(BLOG.LAYOUT_SIDEBAR_REVERSE ? 'flex-row-reverse' : '') + ' w-full flex-1 flex items-start max-w-9/10 mx-auto pt-12'}>
+            <div id='container-wrapper' className={(JSON.parse(siteConfig('LAYOUT_SIDEBAR_REVERSE')) ? 'flex-row-reverse' : '') + ' w-full flex-1 flex items-start max-w-9/10 mx-auto pt-12'}>
                 <div id='container-inner ' className='w-full flex-grow min-h-fit'>
                     <Transition
                         show={!onLoading}
                         appear={true}
                         enter="transition ease-in-out duration-700 transform order-first"
                         enterFrom="opacity-0 translate-y-16"
-                        enterTo="opacity-100 translate-y-0"
+                        enterTo="opacity-100"
                         leave="transition ease-in-out duration-300 transform"
                         leaveFrom="opacity-100 translate-y-0"
                         leaveTo="opacity-0 -translate-y-16"
@@ -106,7 +107,7 @@ const LayoutIndex = props => {
 const LayoutPostList = props => {
   return (
         <LayoutBase {...props}>
-            {BLOG.POST_LIST_STYLE === 'page' ? <BlogListPage {...props} /> : <BlogListScroll {...props} />}
+            {siteConfig('POST_LIST_STYLE') === 'page' ? <BlogListPage {...props} /> : <BlogListScroll {...props} />}
         </LayoutBase>
   )
 }
@@ -121,7 +122,7 @@ const LayoutSearch = props => {
   const { keyword } = props
 
   useEffect(() => {
-    if (isBrowser()) {
+    if (isBrowser) {
       replaceSearchResult({
         doms: document.getElementById('posts-wrapper'),
         search: keyword,
